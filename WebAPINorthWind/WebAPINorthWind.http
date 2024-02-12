@@ -8,3 +8,16 @@ Accept: application/json
 GET {{WebAPINorthWind_HostAddress}}/weatherforecast
 
 ###
+
+GET {{WebAPINorthWind_HostAddress}}/api/category
+
+###
+
+PUT {{WebAPINorthWind_HostAddress}}/api/category
+Content-Type: application/json
+
+{
+  //Category
+}
+
+###
