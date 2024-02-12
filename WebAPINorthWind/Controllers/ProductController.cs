@@ -17,21 +17,28 @@ namespace WebAPINorthWind.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAllProducts()
+        public async Task<IActionResult> GetProducts(
+            [FromQuery] int pageNumber = 1,
+            [FromQuery] int pageSize = 10,
+            [FromQuery] int? categoryId = null)
         {
-            var categories = await _context.Products.ToListAsync();
-            return Ok(categories);
-        }
+            
+            pageNumber = Math.Max(1, pageNumber);
+            pageSize = Math.Max(1, pageSize);
+            
+            var query = _context.Products.AsQueryable();
 
-        [HttpGet("{productId}")]
-        public async Task<IActionResult> GetProduct(int productId)
-        {
-            var product = await _context.Products.FindAsync(productId);
-            if (product is null)
-            {
-                return NotFound();
-            }
-            return Ok(product);
+            if (categoryId.HasValue)
+                query = query.Where(p => p.CategoryId == categoryId.Value);
+            
+            var itemsToSkip = (pageNumber - 1) * pageSize;
+                        
+            var products = await query
+                .Skip(itemsToSkip)
+                .Take(pageSize)
+                .ToListAsync();
+
+            return Ok(products);
         }
 
         [HttpPost]
@@ -39,7 +46,7 @@ namespace WebAPINorthWind.Controllers
         {
             _context.Products.Add(product);
             await _context.SaveChangesAsync();
-            return Ok(await GetAllProducts());
+            return Ok(await _context.Products.FindAsync());
         }
 
         [HttpPut]
@@ -65,7 +72,7 @@ namespace WebAPINorthWind.Controllers
 
             await _context.SaveChangesAsync();
 
-            return Ok(await GetAllProducts());
+            return Ok(await _context.Products.FindAsync());
 
         }
 
@@ -80,7 +87,7 @@ namespace WebAPINorthWind.Controllers
             _context.Products.Remove(product);
             await _context.SaveChangesAsync();
 
-            return Ok(await GetAllProducts());
+            return Ok(await _context.Products.FindAsync());
 
         }
     }
